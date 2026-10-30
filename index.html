@@ -528,7 +528,7 @@ function showInst(code,rows,state,typed){
     if(scheme!=='ALL' && !shown.length) v=verdict('bad',`รหัส ${esc(code)} ไม่มีในรายการของสิทธิ ${SCN[scheme]}`,`แต่พบในสิทธิ ${scs.map(s=>SCN[s]).join(', ')}`);
     else v=verdict('ok',`พบรหัส ${esc(code)} ในเอกสารอ้างอิง`,`มีในสิทธิ ${scs.map(s=>SCN[s]).join(' · ')}`);
   } else v=verdict('bad',`ไม่พบรหัส ${esc(typed)} ในเอกสารอ้างอิงทั้ง 3 สิทธิ`,'');
-  const pref={OFC:0,SSS:1,UC:2}; const main=[...(shown.length?shown:rows)].sort((a,b)=>pref[a.sc]-pref[b.sc])[0];
+  const pref={UC:0,OFC:1,SSS:2}; const main=[...(shown.length?shown:rows)].sort((a,b)=>pref[a.sc]-pref[b.sc])[0];
   const order={UC:0,SSS:1,OFC:2};
   const all=[...rows].sort((a,b)=>order[a.sc]-order[b.sc]);
   const missing=['UC','SSS','OFC'].filter(s=>!rows.some(r=>r.sc===s));
