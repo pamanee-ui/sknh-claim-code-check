@@ -66,7 +66,7 @@ button,input{font:inherit;color:inherit}
 .src-chip{font-size:.74rem;color:var(--ink-2);border:1px solid var(--rule);border-radius:99px;padding:2px 10px;white-space:nowrap}
 
 /* mode tabs */
-.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-block:18px 6px}
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-block:18px 6px}
 .mode{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid var(--rule);border-radius:12px;background:var(--sheet);transition:border-color .15s,background .15s;min-width:0}
 .mode:hover{border-color:var(--accent)}
 .mode:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -221,6 +221,27 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--f-co
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--ink-2);margin-top:16px}
 .legend span{display:inline-flex;gap:6px;align-items:center}
 
+/* pre-claim file check (ตรวจไฟล์ก่อนเคลม + จัดการชีท) */
+.fcheck{display:flex;flex-direction:column;gap:14px;padding-block:12px 40px}
+.fc-drop{display:grid;gap:10px;border:1.5px dashed var(--rule);transition:border-color .15s,background .15s}
+.fc-drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.fc-drop h2{font-family:var(--f-display);font-weight:600;font-size:1.3rem;margin:0}
+.fc-drop p{margin:0;color:var(--ink-2);max-width:72ch}
+.fc-drop ol{margin:0;padding-left:1.3em;color:var(--ink-2);font-size:.88rem;display:grid;gap:2px}
+.fc-act{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.fc-btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);font-weight:600;padding:10px 18px;border-radius:10px;font-size:.92rem}
+.fc-btn:focus-visible,.fc-btn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.fc-btn.ghost{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.fc-btn svg{width:18px;height:18px}
+.fc-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.fc-sum div{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;font-size:.8rem;color:var(--ink-2)}
+.fc-sum b{display:block;font-family:var(--f-code);font-size:1.4rem;color:var(--ink);line-height:1.2}
+.fc-sum .c b{color:var(--bad)} .fc-sum .r b{color:var(--warn)} .fc-sum .n b{color:var(--ink-2)} .fc-sum .o b{color:var(--ok)}
+.fc-tbl td:nth-child(5),.fc-tbl td:nth-child(6){min-width:200px}
+.fc-tbl tr.st-C td{background:var(--bad-soft)} .fc-tbl tr.st-risk td{background:var(--warn-soft)}
+.fc-tbl .code{font-family:var(--f-code);font-weight:600;white-space:nowrap}
+.fc-tbl .i9{font-family:var(--f-code);font-size:.8rem;overflow-wrap:anywhere;min-width:110px}
+
 footer{border-top:1px solid var(--rule);background:var(--sheet)}
 footer .wrap{padding-block:18px 26px;font-size:.78rem;color:var(--ink-3);display:grid;gap:6px}
 footer b{color:var(--ink-2)}
@@ -250,7 +271,7 @@ html{-webkit-text-size-adjust:100%}
   table{font-size:.82rem}
   th,td{padding:8px 10px}
   .ref{flex-direction:column}
-  .modes{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
   .mode{padding:10px}
   .mode .d{white-space:normal;font-size:.72rem;line-height:1.3}
   .mode .k{font-size:.86rem;letter-spacing:0;overflow-wrap:anywhere}
@@ -285,6 +306,7 @@ html{-webkit-text-size-adjust:100%}
     <button class="mode" role="tab" id="tab-icd10" data-mode="icd10" aria-selected="true"><span class="k">ICD-10</span><span class="d">รหัสโรค / การวินิจฉัย</span><span class="n" id="n-icd10"></span></button>
     <button class="mode" role="tab" id="tab-icd9" data-mode="icd9" aria-selected="false"><span class="k">ICD-9-CM</span><span class="d">รหัสหัตถการ / ผ่าตัด</span><span class="n" id="n-icd9"></span></button>
     <button class="mode" role="tab" id="tab-inst" data-mode="inst" aria-selected="false"><span class="k">Instrument</span><span class="d">อุปกรณ์ / อวัยวะเทียม</span><span class="n" id="n-inst"></span></button>
+    <button class="mode" role="tab" id="tab-file" data-mode="file" aria-selected="false"><span class="k">ก่อนเคลม</span><span class="d">ตรวจไฟล์ Excel + จัดการชีท</span><span class="n">อัปโหลดไฟล์ .xlsx</span></button>
   </div>
 
   <div class="desk">
@@ -320,6 +342,24 @@ html{-webkit-text-size-adjust:100%}
 
     <section class="sheet" id="sheet" aria-live="polite"></section>
   </div>
+
+  <section class="fcheck" id="fcheck" hidden>
+    <div class="panel fc-drop" id="fcDrop">
+      <h2>ตรวจไฟล์ก่อนเคลม + จัดการชีท</h2>
+      <p>เลือกไฟล์ <b>Instตรวจสอบก่อนเคลม</b> (.xlsx) ที่มีคอลัมน์ icd10, icd9 และ itemname (1 แถว = 1 Instrument) ระบบจะตรวจ Instrument ทุกแถวตามกฎ "สรุป ICD 9" แล้วให้ดาวน์โหลดไฟล์ที่จัดการชีทแล้ว:</p>
+      <ol>
+        <li>เพิ่มคอลัมน์ ผลตรวจ / เหตุผล / วิธีแก้ไข ต่อท้ายทุกแถว</li>
+        <li>ชีทแรก <b>รอแก้ไข</b> = แถวที่ติด C หรือเสี่ยงติด C</li>
+        <li>ชีทข้อมูลทั้งหมดเปลี่ยนชื่อเป็น <b>เคลมได้เลย</b> แถวติด C ไฮไลท์แดง + ข้อความ "อย่าเพิ่งเคลมเคสไฮไลท์สีแดง"</li>
+      </ol>
+      <div class="fc-act">
+        <label class="fc-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>เลือกไฟล์ Excel<input type="file" id="fcFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></label>
+        <span class="hint">หรือลากไฟล์มาวางในกรอบนี้</span>
+      </div>
+      <p class="hint">ไฟล์ประมวลผลในเครื่องนี้เท่านั้น ไม่ถูกส่งขึ้นอินเทอร์เน็ต · กฎจาก <span id="fcSrc"></span> ชุดเดียวกับแท็บ Instrument · ผลเป็นข้อเสนอ ต้องตรวจกับ op note ก่อนแก้</p>
+    </div>
+    <div id="fcOut" aria-live="polite"></div>
+  </section>
 </main>
 
 <footer>
@@ -652,6 +692,171 @@ function select(i,scroll=true){
 }
 function openCode(k){ $('#codeInput').value=k; codeSearch(); if(window.innerWidth<900) $('#sheet').scrollIntoView({behavior:'smooth',block:'start'}) }
 
+/* ---------- pre-claim file check ---------- */
+/*CHECK-START*/
+// กฎเดียวกับ combine.py / chk_day.py (ตรวจก่อนเคลม) ; r = {c: รหัส Instrument, i9: [ICD-9], i10: ข้อความ icd10, nmI: itemname}
+function makeChecker(DATA){
+  const INST={};
+  for(const x of DATA.inst){ const m=INST[x[1]]||(INST[x[1]]={}); if(!(x[0] in m)) m[x[0]]=x }
+  const UC=new Set(Object.keys(INST).filter(c=>INST[c].UC));
+  const PR=new Map((DATA.pairs||[]).map(e=>[e.c,e]));
+  const codes9=v=>String(v||'').replace(/\bI(\d{3})\b/g,'1$1').split(/[,\s]+/).map(c=>c.trim()).filter(c=>/^\d{3,4}$/.test(c)); // 9 ต.ค. พิมพ์ 1341 เป็น I341
+  function compress9(g){ // ["0040","0041","3950"] -> "0040–0041, 3950" (ไม่มีจุด)
+    const out=[]; let st=null,p=null;
+    for(const k of [...g].sort()){ if(p&&k.length===p.length&&+k===+p+1){p=k;continue} if(st) out.push(st===p?st:st+'–'+p); st=p=k }
+    if(st) out.push(st===p?st:st+'–'+p);
+    return out.join(', ');
+  }
+  function check(r){
+    const c=r.c, S9=new Set(r.i9);
+    if(!c){
+      if(r.nmI) return ['ok','ไม่มีรหัส Instrument (ไม่ได้อยู่ในรายการเบิกอุปกรณ์)','—'];
+      if(r.i9.length||r.i10) return ['ok','เคสนี้ไม่มีรายการ Instrument','—'];
+      return ['ok','ไม่มี Instrument ในเคสนี้ จึงไม่ได้จดรหัสมา','—'];
+    }
+    if(!INST[c]) return ['C',`${c} ไม่พบในรายการ Instrument ของทั้ง 3 สิทธิ (I02)`,'ตรวจรหัส Instrument ที่คีย์'];
+    if(!UC.has(c)){
+      const who=[['OFC','กรมบัญชีกลาง'],['SSS','ประกันสังคม']].filter(([k])=>INST[c][k]).map(x=>x[1]).join(' / ');
+      return ['notuc',`${c} ไม่มีในรายการ UC`+(who?` (มีเฉพาะ${who})`:''),'ไม่ติด C ; รายการนี้เบิก UC ไม่ได้'];
+    }
+    if(c==='7208'){ // Pam 2 พ.ย. 69: HIS ใช้รหัส 7208 แทน 7208B ; รายการที่ชื่อมี [7208A] / ระดับแรก = 7208A
+      const sub=(r.nmI.includes('7208A')||r.nmI.includes('ระดับแรก'))?'7208A':'7208B';
+      const [st,why,fix]=check({...r,c:sub});
+      return [st,`HIS คีย์ 7208 = ${sub} ; `+why,fix];
+    }
+    if(c!=='7207' && INST[c].UC[4]==null && /^\d{4}$/.test(c)){
+      const subs=[...UC].filter(k=>k.startsWith(c)&&k!==c).sort();
+      if(subs.length){
+        const hint=r.nmI.includes('ระดับแรก')?` (HIS ระบุ "ระดับแรก" → ${subs[0]})`:r.nmI.includes('ระดับถัดไป')?` (HIS ระบุ "ระดับถัดไป" → ${subs[subs.length-1]})`:'';
+        return ['C',`${c} เป็นรหัสหัวข้อ ไม่มีอัตราจ่ายใน UC (I02)`,'แก้รหัสใน HIS เป็นรหัสย่อย '+subs.join(', ')+hint];
+      }
+    }
+    const e=PR.get(c);
+    if(!e||e.st!=='ok') return ['ok',`${c} ยังไม่มีสรุป ICD 9 จึงไม่มีกฎบังคับ`,'—'];
+    if(c==='4511'){
+      if(S9.has('9962')||/\bI(2[0-5]|4[4-9])/.test(r.i10)) return ['ok','4511 คู่ 9962 หรือมีรหัสโรคหัวใจขาดเลือด/หัวใจเต้นผิดจังหวะ ✓','ไม่ต้องแก้'];
+      return ['C','4511 ต้องมี 9962 (ยกเว้นมี Coronary heart disease / Arrhythmia)','เพิ่ม 9962 ถ้าทำ cardioversion/defib หรือทบทวน ICD-10'];
+    }
+    const opts=(e.o&&e.o.length)?e.o:[e.g||[]];
+    for(const o of opts){
+      const hits=o.map(g=>[...new Set(g)].filter(k=>S9.has(k)).sort());
+      if(hits.every(h=>h.length)) return ['ok',`${c} คู่กับ `+hits.map(h=>h.join('/')).join(' + ')+' ✓','ไม่ต้องแก้'];
+    }
+    if(!S9.size) return ['risk',`${c} มีกฎ สรุป ICD 9 แต่แถวนี้ไม่มี ICD-9`,'ลง ICD-9 หัตถการให้ครบแล้วตรวจอีกครั้ง'];
+    const need=opts.map(o=>o.map(g=>g.length<8?compress9(g):compress9(g).slice(0,80)+'…').join(' และ ')).join(' หรือ ');
+    return ['C',`${c} ต้องคู่กับ ICD-9: ${need} — แถวนี้ลง ${r.i9.join(', ')} ไม่อยู่ในคู่ (I04)`,'ดู op note แล้วลง/แก้ ICD-9 ให้ตรงหัตถการ ; ถ้ารหัสที่ลงถูกต้องแล้ว ทบทวนสรุป ICD 9 ของรหัสนี้'];
+  }
+  const label=(st,why)=>st==='C'?'✗ ติด C'+((why.match(/\((I\d\d)\)/)||[])[1]?` (${why.match(/\((I\d\d)\)/)[1]})`:''):st==='risk'?'⚠ เสี่ยงติด C':st==='notuc'?'— ไม่ติด C แต่เบิก UC ไม่ได้':'✓ ไม่ติด C';
+  return {check,codes9,label};
+}
+/*CHECK-END*/
+const CHK=makeChecker(DATA);
+const RED='FFFF0000', WARN_TXT='อย่าเพิ่งเคลมเคสไฮไลท์สีแดง', TODO='รอแก้ไข', ALLOK='เคลมได้เลย';
+const TH_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const thDate=d=>`${d.getDate()} ${TH_M[d.getMonth()]} ${String(d.getFullYear()+543).slice(-2)}`;
+const clone=o=>o?JSON.parse(JSON.stringify(o)):{};
+function cellText(v){
+  if(v==null) return '';
+  if(v instanceof Date) return `${String(v.getUTCDate()).padStart(2,'0')}/${String(v.getUTCMonth()+1).padStart(2,'0')}/${v.getUTCFullYear()}`;
+  if(typeof v==='object'){ if(v.richText) return v.richText.map(t=>t.text).join('').trim(); if('result' in v) return cellText(v.result); if('text' in v) return String(v.text).trim(); return '' }
+  return String(v).trim();
+}
+const hkey=h=>h.toLowerCase().replace(/\s/g,'').replace(/^.*\./,''); // instr.itemname, 1.itemname, sql_export.itemname -> itemname
+function headerOf(ws){ const h=[]; ws.getRow(1).eachCell((c,i)=>{h[i]=cellText(c.value)}); return h } // index = เลขคอลัมน์ (เริ่ม 1)
+const findCol=(h,n)=>h.findIndex(x=>x!=null&&hkey(x)===n);
+function pickSheet(wb){ // ชีทที่มีคอลัมน์ itemname และมีแถวข้อมูลมากที่สุด (เหมือน combine.py)
+  let best=null,n=-1;
+  wb.eachSheet(ws=>{
+    if(ws.name===TODO) return;
+    if(findCol(headerOf(ws),'itemname')<1) return;
+    let k=0; ws.eachRow((r,i)=>{ if(i>1&&cellText(r.getCell(2).value)) k++ });
+    if(k>n){n=k;best=ws}
+  });
+  return best;
+}
+let xlP=null;
+function loadXL(){
+  if(window.ExcelJS) return Promise.resolve();
+  return xlP||(xlP=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';s.onload=res;s.onerror=()=>{xlP=null;s.remove();rej(new Error('โหลดตัวอ่าน Excel ไม่ได้ — ตรวจการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่'))};document.head.appendChild(s)}));
+}
+async function processFile(file){
+  const wb=new ExcelJS.Workbook(); await wb.xlsx.load(await file.arrayBuffer());
+  const old=wb.getWorksheet(TODO); if(old) wb.removeWorksheet(old.id); // ตรวจซ้ำ = สร้างชีท รอแก้ไข ใหม่
+  const ws=pickSheet(wb);
+  if(!ws) throw new Error('ไม่พบชีทที่มีคอลัมน์ itemname (หรือ instr.itemname) ในแถวแรก');
+  const h=headerOf(ws), ci10=findCol(h,'icd10'), ci9=findCol(h,'icd9'), cit=findCol(h,'itemname');
+  if(ci10<1||ci9<1) throw new Error('ไม่พบคอลัมน์ icd10 / icd9 ในแถวแรกของชีท '+ws.name);
+  let cr=h.findIndex(x=>x&&x.startsWith('ผลตรวจ Instrument')); if(cr<1) cr=h.length; // ใช้คอลัมน์ผลเดิมถ้ามี ไม่งั้นต่อท้าย
+  const ncol=cr+2, rows=[]; let lastR=1;
+  ws.eachRow((row,i)=>{
+    if(i===1) return;
+    const a=cellText(row.getCell(1).value);
+    if(a===WARN_TXT){ row.getCell(1).value=null; return }
+    if(!cellText(row.getCell(2).value)) return;
+    const it=cellText(row.getCell(cit).value), m=/^\((\w+)\)/.exec(it), i9=cellText(row.getCell(ci9).value);
+    const [st,why,fix]=CHK.check({c:m?m[1]:'',i9:CHK.codes9(i9),i10:cellText(row.getCell(ci10).value),nmI:it});
+    rows.push({i,no:a,an:cellText(row.getCell(3).value),c:m?m[1]:'',it:it.replace(/^(\(\w+\)\s*)+/,''),i9,st,why,fix}); lastR=i;
+  });
+  if(!rows.length) throw new Error('ชีท '+ws.name+' ไม่มีแถวข้อมูลผู้ป่วย (คอลัมน์ HN ว่างทุกแถว)');
+  // คอลัมน์ผลตรวจ (สไตล์ต้องสร้างใหม่ทุกเซลล์ เพราะ ExcelJS ใช้ style ร่วมกันระหว่างเซลล์)
+  const h1=ws.getRow(1).getCell(1);
+  [`ผลตรวจ Instrument (กฎ สรุป ICD 9 ณ ${thDate(new Date())})`,'เหตุผล','วิธีแก้ไข (ข้อเสนอ — ยังไม่ยืนยัน)'].forEach((t,k)=>{
+    const c=ws.getRow(1).getCell(cr+k); c.value=t;
+    c.style={font:{...clone(h1.font),bold:true},fill:{type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF2CC'}},alignment:{wrapText:true,vertical:'top'}};
+  });
+  [22,60,45].forEach((w,k)=>{const col=ws.getColumn(cr+k); if(!col.width||col.width<w) col.width=w});
+  for(const r of rows){
+    const row=ws.getRow(r.i), f=clone(row.getCell(1).font);
+    [CHK.label(r.st,r.why),r.why,r.fix].forEach((t,k)=>{const c=row.getCell(cr+k); c.value=t; c.style={font:f,alignment:{wrapText:true,vertical:'top'}}});
+  }
+  // ชีท รอแก้ไข = หัวตาราง + แถวติด C / เสี่ยงติด C (คัดลอกค่าและสไตล์ ก่อนไฮไลท์แดง)
+  const bad=rows.filter(r=>r.st==='C'||r.st==='risk');
+  const nw=wb.addWorksheet(TODO);
+  for(let k=1;k<=ncol;k++) nw.getColumn(k).width=ws.getColumn(k).width;
+  const copyRow=(src,dst)=>{ for(let k=1;k<=ncol;k++){const s=src.getCell(k),d=dst.getCell(k); d.value=s.value; d.style=clone(s.style)} if(src.height) dst.height=src.height };
+  copyRow(ws.getRow(1),nw.getRow(1)); bad.forEach((r,j)=>copyRow(ws.getRow(r.i),nw.getRow(j+2)));
+  // ชีทข้อมูลทั้งหมด: ไฮไลท์แดง + คำเตือน + เปลี่ยนชื่อ
+  for(const r of bad){ const row=ws.getRow(r.i); for(let k=1;k<=ncol;k++){const c=row.getCell(k); c.style={...clone(c.style),fill:{type:'pattern',pattern:'solid',fgColor:{argb:RED}}}} }
+  if(bad.length){ const c=ws.getRow(lastR+2).getCell(1); c.value=WARN_TXT; c.style={font:{bold:true,color:{argb:RED},name:h1.font&&h1.font.name||'Tahoma',size:h1.font&&h1.font.size||11}} }
+  if(ws.name!==ALLOK && !wb.getWorksheet(ALLOK)) ws.name=ALLOK;
+  // รอแก้ไข เป็นชีทแรกและเปิดขึ้นมาก่อน
+  nw.orderNo=Math.min(...wb.worksheets.map(w=>w.orderNo))-1;
+  wb.worksheets.forEach(w=>{ w.views=(w.views&&w.views.length?w.views:[{}]).map(v=>({...v,tabSelected:false})) });
+  nw.views=[{state:'frozen',ySplit:1,topLeftCell:'A2',tabSelected:true}];
+  wb.views=[{...((wb.views&&wb.views[0])||{x:0,y:0,width:20000,height:12000,visibility:'visible'}),activeTab:0,firstSheet:0}];
+  const buf=await wb.xlsx.writeBuffer();
+  return {rows,bad,sheet:ws.name,blob:new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})};
+}
+let fcURL=null;
+function renderFC(file,res){
+  const n={C:0,risk:0,notuc:0,ok:0}; res.rows.forEach(r=>n[r.st]++);
+  const cases=new Set(res.rows.map(r=>r.an)).size;
+  if(fcURL) URL.revokeObjectURL(fcURL); fcURL=URL.createObjectURL(res.blob);
+  const tr=r=>`<tr class="st-${r.st}"><td>${esc(r.no)}</td><td class="code">${esc(r.an)}</td><td><span class="code">${esc(r.c||'—')}</span> ${esc(r.it)}</td><td class="i9">${esc(r.i9)}</td><td><b>${esc(CHK.label(r.st,r.why))}</b><br>${esc(r.why)}</td><td>${esc(r.fix)}</td></tr>`;
+  const head='<thead><tr><th>ลำดับ</th><th>AN</th><th>Instrument</th><th>ICD-9 ที่ลง</th><th>ผลตรวจ / เหตุผล</th><th>วิธีแก้ไข (ข้อเสนอ)</th></tr></thead>';
+  $('#fcOut').innerHTML=`<div class="sheet">
+    ${res.bad.length?verdict('bad',`พบ ${res.bad.length} รายการที่ต้องแก้ก่อนเคลม`,`${esc(file.name)} · ${cases} เคส ${res.rows.length} รายการ`):verdict('ok','ไม่พบรายการติด C — เคลมได้ทั้งไฟล์',`${esc(file.name)} · ${cases} เคส ${res.rows.length} รายการ`)}
+    <div class="sheet-body" style="display:grid;gap:16px">
+      <div class="fc-sum"><div class="c"><b>${n.C}</b>✗ ติด C</div><div class="r"><b>${n.risk}</b>⚠ เสี่ยงติด C (ไม่มี ICD-9)</div><div class="n"><b>${n.notuc}</b>— เบิก UC ไม่ได้</div><div class="o"><b>${n.ok}</b>✓ ไม่ติด C</div></div>
+      <div class="fc-act"><a class="fc-btn" href="${fcURL}" download="${esc(file.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 16v4h16v-4"/></svg>ดาวน์โหลดไฟล์ที่จัดการชีทแล้ว</a><span class="hint">ชื่อไฟล์เดิม · ชีท รอแก้ไข (${res.bad.length} แถว) + ${esc(res.sheet)} · นำไปวางแทนไฟล์เดิมในโฟลเดอร์ตรวจสอบก่อนเคลม</span></div>
+      ${res.bad.length?`<div class="sec" style="margin:0"><h3>รายการที่ต้องแก้</h3><div class="tbl-wrap"><table class="fc-tbl">${head}<tbody>${res.bad.map(tr).join('')}</tbody></table></div></div>`:''}
+      <details class="more"><summary>ดูผลตรวจทุกแถว (${res.rows.length})</summary><div class="tbl-wrap" style="margin-top:8px"><table class="fc-tbl">${head}<tbody>${res.rows.map(tr).join('')}</tbody></table></div></details>
+    </div></div>`;
+}
+async function onFile(file){
+  if(!file) return;
+  if(!/\.xlsx$/i.test(file.name)){ $('#fcOut').innerHTML=`<div class="sheet">${verdict('bad','รองรับเฉพาะไฟล์ .xlsx','ถ้าเป็น .xls ให้เปิดใน Excel แล้ว Save As เป็น .xlsx ก่อน')}</div>`; return }
+  $('#fcOut').innerHTML=`<div class="sheet">${verdict('warn','กำลังตรวจ '+esc(file.name)+' …','')}</div>`;
+  try{ await loadXL(); renderFC(file,await processFile(file)) }
+  catch(err){ console.error(err); $('#fcOut').innerHTML=`<div class="sheet">${verdict('bad','ตรวจไฟล์ไม่สำเร็จ',esc(err.message||String(err)))}</div>` }
+}
+$('#fcSrc').textContent=DATA.pairs_src||'ไฟล์จับคู่ Instrument กับ ICD-9';
+$('#fcFile').addEventListener('change',e=>{onFile(e.target.files[0]); e.target.value=''});
+const drop=$('#fcDrop');
+['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>onFile(e.dataTransfer.files[0]));
+
 /* ---------- events ---------- */
 let t1,t2;
 $('#codeInput').addEventListener('input',()=>{clearTimeout(t1);t1=setTimeout(codeSearch,90)});
@@ -670,6 +875,8 @@ document.querySelectorAll('#schemes .chip').forEach(b=>b.addEventListener('click
 function rerun(){ if($('#textInput').value.trim()) textSearch(); else codeSearch() }
 function setMode(m){
   mode=m; document.querySelectorAll('.mode').forEach(b=>b.setAttribute('aria-selected',b.dataset.mode===m));
+  $('.desk').hidden = m==='file'; $('#fcheck').hidden = m!=='file';
+  if(m==='file'){ try{localStorage.setItem('sknh-mode',m)}catch(e){} if(location.hash!=='#file') history.replaceState(null,'','#file'); return }
   const h=HELP[m]; $('#codeHelp').textContent=h.code; $('#codeInput').placeholder=h.ph; $('#textHelp').textContent=h.text; $('#textInput').placeholder=h.tph;
   $('#codeInput').setAttribute('inputmode', m==='icd9'?'numeric':'text');
   $('#schemes').hidden = m!=='inst';
@@ -679,11 +886,11 @@ function setMode(m){
   rerun();
 }
 let start='icd10';
-try{ const s=localStorage.getItem('sknh-scheme'); if(s) {scheme=s; document.querySelectorAll('#schemes .chip').forEach(c=>c.setAttribute('aria-pressed',c.dataset.s===s))} const m=localStorage.getItem('sknh-mode'); if(m&&DB[m]) start=m }catch(e){}
-const hm=location.hash.slice(1); if(DB[hm]) start=hm;
+try{ const s=localStorage.getItem('sknh-scheme'); if(s) {scheme=s; document.querySelectorAll('#schemes .chip').forEach(c=>c.setAttribute('aria-pressed',c.dataset.s===s))} const m=localStorage.getItem('sknh-mode'); if(m&&(DB[m]||m==='file')) start=m }catch(e){}
+const hm=location.hash.slice(1); if(DB[hm]||hm==='file') start=hm;
 setMode(start);
 // open with a worked example so the first view shows what the tool does
-$('#codeInput').value=({icd10:'J189',icd9:'4701',inst:'4402'})[start]; codeSearch();
+if(start!=='file'){ $('#codeInput').value=({icd10:'J189',icd9:'4701',inst:'4402'})[start]; codeSearch(); }
 })();
 </script>
 
