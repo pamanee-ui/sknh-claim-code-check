@@ -735,6 +735,11 @@ function makeChecker(DATA){
     }
     if(c!=='7207' && INST[c].UC[4]==null && /^\d{4}$/.test(c)){
       const subs=[...UC].filter(k=>k.startsWith(c)&&k!==c).sort();
+      const named=subs.filter(k=>r.nmI.includes(k));
+      if(named.length===1){ // HIS คีย์รหัสหัวข้อ แต่ชื่อรายการระบุรหัสย่อย เช่น "(5702) … (5702B)" (Pam 10 พ.ย. 69)
+        const [st,why,fix]=check({...r,c:named[0]});
+        return [st,`HIS คีย์ ${c} ชื่อรายการระบุ ${named[0]} ; `+why,fix];
+      }
       if(subs.length){
         const hint=r.nmI.includes('ระดับแรก')?` (HIS ระบุ "ระดับแรก" → ${subs[0]})`:r.nmI.includes('ระดับถัดไป')?` (HIS ระบุ "ระดับถัดไป" → ${subs[subs.length-1]})`:'';
         return ['C',`${c} เป็นรหัสหัวข้อ ไม่มีอัตราจ่ายใน UC (I02)`,'แก้รหัสใน HIS เป็นรหัสย่อย '+subs.join(', ')+hint];
