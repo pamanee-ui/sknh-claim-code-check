@@ -781,11 +781,16 @@ function cellText(v){
 const hkey=h=>h.toLowerCase().replace(/\s/g,'').replace(/^.*\./,''); // instr.itemname, 1.itemname, sql_export.itemname -> itemname
 function headerOf(ws){ const h=[]; ws.getRow(1).eachCell((c,i)=>{h[i]=cellText(c.value)}); return h } // index = เลขคอลัมน์ (เริ่ม 1)
 const findCol=(h,n)=>h.findIndex(x=>x!=null&&hkey(x)===n);
+function itemCol(ws){ // 12 พ.ย. 69: มีได้หลายคอลัมน์ itemname (Sheet1.itemname ว่าง + sql_export.itemname) → เลือกคอลัมน์ที่มีข้อมูลมากสุด ; ไม่มี = -1
+  const h=headerOf(ws); let best=-1,n=-1;
+  h.forEach((x,i)=>{ if(x==null||hkey(x)!=='itemname') return; let k=0; ws.eachRow((r,j)=>{ if(j>1&&cellText(r.getCell(i).value)) k++ }); if(k>n){n=k;best=i} });
+  return best;
+}
 function pickSheet(wb){ // ชีทที่มีคอลัมน์ itemname และมีแถวข้อมูลมากที่สุด (เหมือน combine.py)
   let best=null,n=-1;
   wb.eachSheet(ws=>{
     if(ws.name===TODO) return;
-    if(findCol(headerOf(ws),'itemname')<1) return;
+    if(itemCol(ws)<1) return;
     let k=0; ws.eachRow((r,i)=>{ if(i>1&&cellText(r.getCell(2).value)) k++ });
     if(k>n){n=k;best=ws}
   });
@@ -801,7 +806,7 @@ async function processFile(file){
   const old=wb.getWorksheet(TODO); if(old) wb.removeWorksheet(old.id); // ตรวจซ้ำ = สร้างชีท รอแก้ไข ใหม่
   const ws=pickSheet(wb);
   if(!ws) throw new Error('ไม่พบชีทที่มีคอลัมน์ itemname (หรือ instr.itemname) ในแถวแรก');
-  const h=headerOf(ws), ci10=findCol(h,'icd10'), ci9=findCol(h,'icd9'), cit=findCol(h,'itemname');
+  const h=headerOf(ws), ci10=findCol(h,'icd10'), ci9=findCol(h,'icd9'), cit=itemCol(ws);
   if(ci10<1||ci9<1) throw new Error('ไม่พบคอลัมน์ icd10 / icd9 ในแถวแรกของชีท '+ws.name);
   let cr=h.findIndex(x=>x&&x.startsWith('ผลตรวจ Instrument')); if(cr<1) cr=h.length; // ใช้คอลัมน์ผลเดิมถ้ามี ไม่งั้นต่อท้าย
   const ncol=cr+2, rows=[]; let lastR=1;
