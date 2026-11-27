@@ -566,7 +566,6 @@ function showICD(o,state,typed){
     <div class="headline"><div class="bigcode ${m==='icd9'?boxClass(o):''}">${esc(o.c)}${o.m?`<sup>${esc(o.m)}</sup>`:''}</div><h2>${esc(o.t)}</h2></div>
     ${tags.length?`<div class="tags">${tags.join('')}</div>`:''}
     ${extra.length?`<div class="sec"><h3>หมายเหตุการลงรหัส</h3><div class="notes">${extra.map(e=>`<div>${esc(e)}</div>`).join('')}</div></div>`:''}
-    ${m==='icd9'?schemeRuleHTML(o.k,'icd9'):''}
     ${m==='icd9'?revHTML(o):rev10HTML(o)}
     ${ch.length?`<div class="sec"><h3>รหัสย่อย (${ch.length})</h3>${kidsHTML(ch)}</div>`:''}
     ${o.n?`<div class="sec"><h3>รายละเอียดในเอกสารอ้างอิง</h3><div class="notes">${notesHTML(o.n)}</div></div>`:''}
@@ -574,14 +573,6 @@ function showICD(o,state,typed){
   </div>`;
 }
 
-function schemeRuleHTML(code,kind){ // กล่องกฎรหัสตามสิทธิ TKA / THR (27 พ.ย. 69)
-  const sr=SCHEME_RULES.find(x=>kind==='icd9'?x.i9.includes(code):(x.ofc.includes(code)||x.ucl.some(u=>u[0]===code)||x.ucx.includes(code)));
-  if(!sr) return '';
-  const btn=(c,lab,cls)=>{const r=DB.inst.find(x=>x.c===c&&x.sc===(cls==='uc'?'UC':'OFC'));return `<button class="kid" data-go="inst:${esc(c)}"><span class="cbox ${cls}">${esc(c)}</span><span>${r?esc(r.t.replace(/^[\d.๐-๙A-Z]+\s+/,'')):''}${lab?` <span class="lbl">(${esc(lab)})</span>`:''}</span></button>`};
-  return `<div class="sec"><h3>กฎรหัสตามสิทธิ · ${esc(sr.n)}</h3><div class="notes cond" style="margin-bottom:10px"><div><b>สิทธิกรมบัญชีกลาง (ข้าราชการ):</b> เบิกอุปกรณ์แยกชิ้น ${esc(sr.ofcr)}</div><div><b>สิทธิ UC:</b> เบิก ${esc(sr.uc)} — ห้ามใช้ ${esc(sr.ofcr)} กับสิทธิ UC</div></div>
-    <div class="pgroups"><div class="pgroup"><h4>UC</h4><div class="kids">${sr.ucl.map(u=>btn(u[0],u[1],'uc')).join('')}</div></div><div class="pgroup"><h4>กรมบัญชีกลาง</h4><div class="kids">${sr.ofc.map(c=>btn(c,'','ofc')).join('')}</div></div></div>
-    <div class="raw">ศูนย์จัดเก็บรายได้ โรงพยาบาลสกลนคร (27 พ.ย. 69)</div></div>`;
-}
 function showInst(code,rows,state,typed){
   let v;
   const shown = scheme==='ALL'?rows:rows.filter(r=>r.sc===scheme);
@@ -597,7 +588,6 @@ function showInst(code,rows,state,typed){
   $('#sheet').innerHTML = v + `<div class="sheet-body">
     <div class="crumbs"><span>อุปกรณ์และอวัยวะเทียม</span><span>หมวด ${esc(code.slice(0,1))}</span></div>
     <div class="headline"><div class="bigcode plain">${esc(code)}</div><h2>${esc(main.t)}</h2></div>
-    ${schemeRuleHTML(code,'inst')}
     ${pairHTML(code)}
     <div class="sec"><h3>เทียบ 3 สิทธิ</h3>
       <div class="tbl-wrap"><table><thead><tr><th>สิทธิ</th><th>รายการตามเอกสาร</th><th>หน่วย</th><th style="text-align:right">อัตราเบิก (บาท)</th><th>อ้างอิง</th></tr></thead><tbody>
@@ -711,14 +701,6 @@ function openCode(k){ $('#codeInput').value=k; codeSearch(); if(window.innerWidt
 
 /* ---------- pre-claim file check ---------- */
 /*CHECK-START*/
-// กฎรหัสตามสิทธิ (27 พ.ย. 69) — ต้องตรงกับ SCHEME_RULES ใน preclaim/combine.py
-const R_=(a,b)=>Array.from({length:b-a+1},(_,i)=>String(a+i));
-const SCHEME_RULES=[
-  {n:'ผ่าตัดเปลี่ยนข้อเข่าเทียม (Total knee arthroplasty)',ofc:R_(7012,7018),ofcr:'7012–7018',uc:'7004 (primary TKA) หรือ 7027 / 7028 (revision)',
-   ucl:[['7004','primary TKA'],['7027','revision'],['7028','revision']],ucx:['7004A','7004B'],i9:['8154','8155','0080','0081','0082','0083','0084']},
-  {n:'ผ่าตัดเปลี่ยนข้อสะโพกเทียม (Total hip replacement)',ofc:R_(7021,7025),ofcr:'7021–7025',uc:'7008 หรือ 7011',
-   ucl:[['7008',''],['7011','']],ucx:[],i9:['8151','8153','0070','0071','0072','0073']}
-];
 // กฎเดียวกับ combine.py / chk_day.py (ตรวจก่อนเคลม) ; r = {c: รหัส Instrument, i9: [ICD-9], i10: ข้อความ icd10, nmI: itemname, qn: จำนวนชิ้นของรหัสนี้ใน AN}
 function makeChecker(DATA){
   const INST={};
@@ -755,8 +737,6 @@ function makeChecker(DATA){
     if(!INST[c]) return ['C',`${c} ไม่พบในรายการ Instrument ของทั้ง 3 สิทธิ (I02)`,'ตรวจรหัส Instrument ที่คีย์'];
     if(!UC.has(c)){
       const who=[['OFC','กรมบัญชีกลาง'],['SSS','ประกันสังคม']].filter(([k])=>INST[c][k]).map(x=>x[1]).join(' / ');
-      const sr=SCHEME_RULES.find(x=>x.ofc.includes(c));
-      if(sr) return ['notuc',`${c} เป็นรหัสของกรมบัญชีกลาง (เบิกแยกชิ้น ${sr.ofcr}) — ${sr.n} สิทธิ UC เบิก ${sr.uc}`,`ไม่ติด C แต่เบิก UC ไม่ได้ ; ถ้าเป็นสิทธิ UC แก้รหัสใน HIS เป็น ${sr.uc} ; ถ้าเป็นสิทธิกรมบัญชีกลาง ใช้ ${sr.ofcr} ถูกแล้ว`];
       return ['notuc',`${c} ไม่มีในรายการ UC`+(who?` (มีเฉพาะ${who})`:''),'ไม่ติด C ; รายการนี้เบิก UC ไม่ได้'];
     }
     if(c==='7208'){ // Pam 2 พ.ย. 69: HIS ใช้รหัส 7208 แทน 7208B ; รายการที่ชื่อมี [7208A] / ระดับแรก = 7208A
